@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"sync"
 	"sync/atomic"
+	"unsafe"
 )
 
 var x int64
@@ -35,6 +36,12 @@ func main() {
 	*/
 	var i int32 = 10
 	atomic.SwapInt32(&i, 2)
-	//var i atomic.Value
 	fmt.Println(i)
+	var v atomic.Value
+	v.Store(&i)
+	g := v.Load()
+	fmt.Println(g)
+	var firstStoreInProgress byte
+	fmt.Printf("%d", unsafe.Pointer(&firstStoreInProgress))
+	v.Store(nil)
 }
