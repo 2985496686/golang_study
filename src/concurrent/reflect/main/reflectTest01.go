@@ -1,29 +1,30 @@
 package main
 
 import (
+	"GoCodeb/src/concurrent/reflect/util"
 	"fmt"
 	"reflect"
 )
 
 type user struct {
-	id    int64 `ss`
-	name  string
-	score int32
+	Id    int64 `ss`
+	Name  string
+	Score int32
 }
 
-func (u user) getNameAndScore() (string, int32) {
-	return u.name, u.score
+func (u user) GetNameAndScore() (string, int32) {
+	return u.Name, u.Score
 }
 
-func (u user) getId() int64 {
-	return u.id
+func (u user) GetId() int64 {
+	return u.Id
 }
 
 func main() {
 	u := user{
-		name:  "张三",
-		id:    1,
-		score: 100,
+		Name:  "张三",
+		Id:    1,
+		Score: 100,
 	}
 	userType := reflect.TypeOf(u)
 	/*
@@ -68,4 +69,37 @@ func main() {
 		return false
 	})
 	fmt.Println(field) //{name main string  8 [1] false}
+
+	//获取一个值的Value
+	userValue := reflect.ValueOf(u)
+	//由反射类型转换为接口类型
+	u2 := userValue.Interface().(user)
+	fmt.Printf("%T", u2)
+
+	//通过反射修改变量的值
+	/*
+		1. 被修改的变量必须是可以被寻址的
+		2.若修改的是结构体字段，被修改的字段必须是可以被导出的
+	*/
+	/*
+		id := userValue.Field(1) //获取第一个字段的值
+		id.SetInt(30)
+		执行上面代码会报panic，因为这样的值是不可以被修改的。
+		我们在获取userValue时 :reflect.ValueOf(u)，这里接收到的u只是一个副本，对它进行修改并不会改变外部的u，所以这里直接设置为了不可修改
+	*/
+	userValue2 := reflect.ValueOf(&u).Elem()
+	id := userValue2.Field(0)
+	id.SetInt(40)
+	fmt.Println(u)
+
+	/*
+		通过反射获取方法,执行方法
+	*/
+	methodType := userType.Method(0)
+	fmt.Println(methodType)
+
+	methodValue := userValue.Method(0)
+	call := methodValue.Call([]reflect.Value{})
+	fmt.Printf("%v", call[0])
+	util.Add(1, 2)
 }
